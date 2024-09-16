@@ -67,8 +67,8 @@ function getInventory(source)
         if Player then
             local inventory = exports['qb-inventory']:LoadInventory(source, Player.PlayerData.citizenid)
             for _, item in pairs(inventory) do
-                if item.name and item.label and item.count then
-                    table.insert(inv, { name = item.name, label = item.label, count = item.count })
+                if item.name and item.label and item.amount then
+                    table.insert(inv, { name = item.name, label = item.label, count = item.amount })
                 end
             end
         end
