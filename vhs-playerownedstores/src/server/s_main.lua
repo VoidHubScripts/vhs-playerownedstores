@@ -82,6 +82,22 @@ end)
 
 lib.callback.register('vhs-store:setItem', function(source, price, amount, name, store)
     local sData = MySQL.query.await('SELECT store_data FROM vhs_playerstores WHERE store_id = ?', { store })
+    local storeData = Stores[store] 
+    
+    if storeData.allowedItems.useAllowed then
+        local isAllowed = false
+        for _, allowedItem in ipairs(storeData.allowedItems.list) do
+            
+            if string.lower(name) == string.lower(allowedItem) then
+                isAllowed = true
+                break
+            end
+        end
+        if not isAllowed then
+            Notify('error', 'Item Not Allowed', 'This item is not allowed to be added to this store.', source)
+            return false
+        end
+    end
     if sData and sData[1] and sData[1].store_data then
         local data = json.decode(sData[1].store_data) or {}
         data.items = data.items or {}

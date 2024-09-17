@@ -1,4 +1,18 @@
 
+function getIdentifer()
+    if Framework == 'esx' then
+        local playerData = ESX.GetPlayerData()
+        if playerData then
+            return playerData.identifer
+        end
+    elseif Framework == 'qbcore' then
+        local playerData = QBCore.Functions.GetPlayerData()
+        return playerData.citizenid
+    end
+end
+
+
+
 function ItemLabel(item)
     local label = lib.callback.await('vhs-framework:itemLabel', false, item)
     if label then

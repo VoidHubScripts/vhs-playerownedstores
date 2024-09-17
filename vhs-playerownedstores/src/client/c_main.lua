@@ -84,13 +84,22 @@ function targetStores()
                     manageStore(k)
                 end,
                 canInteract = function()
-                    local jName, jGrade, jLabel = getJob()  
-                    if jName == rJob and jGrade >= rGrade then
-                        return true  
-                    else
-                        return false  
+                    if not v.manageJob.usePlayer then 
+                        local jName, jGrade, jLabel = getJob()  
+                        if jName == rJob and jGrade >= rGrade then
+                            return true  
+                        else
+                            return false   
+                        end
+                    elseif v.manageJob.usePlayer then
+                        local id = getIdentifer()
+                        if id == v.manageJob.identifer then 
+                            return true 
+                        else 
+                            return false 
+                        end
                     end
-                end
+                end 
             }
         }
         targetModel(v.peds.model, k, storeOptions, 

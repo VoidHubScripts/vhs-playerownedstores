@@ -57,7 +57,7 @@ function getInventory(source)
         end
     elseif GetResourceState('ox_inventory') == 'started' then
         local inventory = exports.ox_inventory:GetInventoryItems(source)  
-        for _, item in ipairs(inventory) do
+        for _, item in pairs(inventory) do
             if item.name and item.label and item.count then
                 table.insert(inv, { name = item.name, label = item.label, count = item.count })
             end
