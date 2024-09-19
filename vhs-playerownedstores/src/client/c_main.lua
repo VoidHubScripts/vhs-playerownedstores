@@ -92,8 +92,8 @@ function targetStores()
                             return false   
                         end
                     elseif v.manageJob.usePlayer then
-                        local id = getIdentifer()
-                        if id == v.manageJob.identifer then 
+                        local id = getIdentifier()
+                        if id == v.manageJob.identifier then 
                             return true 
                         else 
                             return false 
@@ -123,6 +123,9 @@ function addStock(name)
             table.insert(menuOptions, { title = item.label.. ' - ('.. item.count..'x)', icon = InventoryImagePath .. string.lower(item.name) .. ".png",  args = { store = name, item = string.lower(item.name), label = item.name, amount = item.count },
             onSelect = function()
                 local input = lib.inputDialog('Add ' .. item.label .. ' as Product', { {type = 'number', label = 'Price', description = 'Set the price of stock', required = true, min = 1}, {type = 'slider', label = 'Stock Amount', description = 'Set the amount of stock', icon = 'hashtag', min = 1, max = item.count, required = true,} })
+                if not input then 
+                    return 
+                end 
                 local setup = lib.callback.await('vhs-store:setItem', false, input[1], input[2], string.lower(item.name), name)
             end
          })
@@ -212,6 +215,9 @@ AddEventHandler('vhs-stores:open', function(name, config, data, hasItems)
             table.insert(menuOptions, { title = ItemLabel(item).. ' - $'.. data.price, description = 'Stock Avaliable - ('.. data.amount.. 'x)', icon = InventoryImagePath .. item .. ".png", args = { price = data.price, item = item, amount = data.amount },
             onSelect = function()
                 local input = lib.inputDialog('Purchase ' .. ItemLabel(item), { {type = 'number', description = 'Amount to purchase', icon = 'hashtag', min = 1, max = data.amount, required = true} })
+                if not input then 
+                    return 
+                end 
                 local buy = lib.callback.await('vhs-store:buyItem', false, name, item, data.price, input[1])
             end,
         })

@@ -1,5 +1,25 @@
 if Framework == 'esx' then ESX = exports["es_extended"]:getSharedObject() else QBCore = exports['qb-core']:GetCoreObject() end
 
+local versionCheck = function()
+	local currentVersion = GetResourceMetadata(GetCurrentResourceName(), 'version', 0)
+	local latestReleaseUrl = 'https://api.github.com/repos/VoidHubScripts/vhs-playerownedstores/releases/latest'
+
+	PerformHttpRequest(latestReleaseUrl, function(statusCode, resultData, headers)
+		if statusCode == 200 then
+			local releaseData   = json.decode(resultData)
+			local latestVersion = releaseData.tag_name
+
+			if currentVersion ~= latestVersion then
+                print("^5Support Discord: ^5^0https://discord.gg/CBSSMpmqrK - ^5Site^5: ^0VoidHubScripts.com\n".."^0"..GetCurrentResourceName()..' | ^1Current Version: '..currentVersion.."\n^0"..GetCurrentResourceName()..' |^2 Updated Version: '..latestVersion.."")
+			end
+		end
+	end, 'GET', headers)
+end
+
+if versionCheck then
+    versionCheck()
+end
+
 function logDiscord(title, message, color) local data = { username = "vhs-playerstores",  avatar_url = "https://i.imgur.com/E2Z3mDO.png", embeds = { { ["color"] = color, ["title"] = title, ["description"] = message, ["footer"] = { ["text"] = "Installation Support - [ESX, QBCore, Qbox] -  https://discord.gg/CBSSMpmqrK" },} } } PerformHttpRequest(WebhookConfig.URL, function(err, text, headers) end, 'POST', json.encode(data), {['Content-Type'] = 'application/json'}) end
 
 function editStock(store, item, newPrice, amount, increase)
@@ -62,7 +82,11 @@ lib.callback.register('vhs-store:buyItem', function(source, store, item, price, 
     local price = amount * price 
     if getMoney(source) >= price then 
         removeMoney(source, price)
-        societyDeposit(storeConfig.manageJob.job, price)
+        if storeConfig.manageJob.usePlayer then 
+            addMoney(storeConfig.manageJob.identifier, price)
+        else 
+            societyDeposit(storeConfig.manageJob.job, price)
+        end 
         addItem(source, item, amount)
         editStock(store, item, nil, amount, false)
     else

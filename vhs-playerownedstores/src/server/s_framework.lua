@@ -2,9 +2,9 @@
 
 function addItem(source, item, amount)
     if Framework == 'esx' then 
-        local xPlayer = ESX.GetPlayerFromId(source)
-        if xPlayer and xPlayer.canCarryItem(item, amount) then 
-            xPlayer.addInventoryItem(item, amount)
+        local Player = ESX.GetPlayerFromId(source)
+        if Player.canCarryItem(item, amount) then 
+            Player.addInventoryItem(item, amount)
         end 
     elseif GetResourceState('ox_inventory') == 'started' then
         local success, response = exports.ox_inventory:AddItem(source, item, amount)
@@ -18,10 +18,10 @@ end
 
 function removeItem(source, item, amount)
     if Framework == 'esx' then 
-        local xPlayer = ESX.GetPlayerFromId(source)
-        if xPlayer then        
-            if xPlayer.getInventoryItem(item).count >= amount then
-                xPlayer.removeInventoryItem(item, amount)
+        local Player = ESX.GetPlayerFromId(source)
+        if Player then        
+            if Player.getInventoryItem(item).count >= amount then
+                Player.removeInventoryItem(item, amount)
                 return true
             else
                 return false
@@ -32,9 +32,9 @@ function removeItem(source, item, amount)
     elseif GetResourceState('ox_inventory') == 'started' then
         local success = exports.ox_inventory:RemoveItem(source, item, amount)
     elseif Framework == 'qbcore' then 
-        local xPlayer = QBCore.Functions.GetPlayer(source)
-        if xPlayer then
-                xPlayer.Functions.RemoveItem(item, amount)
+        local Player = QBCore.Functions.GetPlayer(source)
+        if Player then
+            Player.Functions.RemoveItem(item, amount)
                 TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[item], 'remove', amount)
                 return true
             else
@@ -46,9 +46,9 @@ end
 function getInventory(source)
     local inv = {}
     if Framework == 'esx' then
-        local xPlayer = ESX.GetPlayerFromId(source)
-        if xPlayer then
-            local inventory = xPlayer.getInventory()
+        local Player = ESX.GetPlayerFromId(source)
+        if Player then
+            local inventory = Player.getInventory()
             for _, item in ipairs(inventory) do
                 if item.name and item.label and item.count then
                     table.insert(inv, { name = item.name, label = item.label, count = item.count })
@@ -78,9 +78,9 @@ end
 
 function getItem(source, item)
     if Framework == 'esx' then
-        local xPlayer = ESX.GetPlayerFromId(source)
-        if xPlayer then
-            local esxItem = xPlayer.getInventoryItem(item)
+        local Player = ESX.GetPlayerFromId(source)
+        if Player then
+            local esxItem = Player.getInventoryItem(item)
             if esxItem and esxItem.count > 0 then
                 return { count = esxItem.count, label = esxItem.label }
             end
@@ -89,8 +89,8 @@ function getItem(source, item)
         local OxItem = exports.ox_inventory:GetItem(source, item)
         return { count = OxItem.count, label = OxItem.label }
     elseif Framework == 'qbcore' then
-        local xPlayer = QBCore.Functions.GetPlayer(source)
-        if xPlayer then
+        local Player = QBCore.Functions.GetPlayer(source)
+        if Player then
             local qItem = exports['qb-inventory']:GetItemByName(source, item)
             if qItem and qItem.amount then
                 return { count = qItem.amount, label = qItem.label }
@@ -123,14 +123,14 @@ end)
 
 function getMoney(source)
     if Framework == 'esx' then
-        local xPlayer = ESX.GetPlayerFromId(source)
-        if xPlayer then
-            return xPlayer.getMoney()
+        local Player = ESX.GetPlayerFromId(source)
+        if Player then
+            return Player.getMoney()
         end
     elseif Framework == 'qbcore' then
-        local xPlayer = QBCore.Functions.GetPlayer(source)
-        if xPlayer then
-            return xPlayer.PlayerData.money.cash
+        local Player = QBCore.Functions.GetPlayer(source)
+        if Player then
+            return Player.PlayerData.money.cash
         end
     end
     return 0
@@ -138,14 +138,14 @@ end
 
 function removeMoney(source, amount)
     if Framework == 'esx' then 
-        local xPlayer = ESX.GetPlayerFromId(source)
-        if xPlayer then 
-            xPlayer.removeMoney(amount)
+        local Player = ESX.GetPlayerFromId(source)
+        if Player then 
+            Player.removeMoney(amount)
         end 
     elseif Framework == 'qbcore' then 
-        local xPlayer = QBCore.Functions.GetPlayer(source)
-        if xPlayer then 
-            xPlayer.Functions.RemoveMoney('cash', amount)
+        local Player = QBCore.Functions.GetPlayer(source)
+        if Player then 
+            Player.Functions.RemoveMoney('cash', amount)
         end 
     end 
 end 
@@ -162,17 +162,25 @@ function societyDeposit(society, amount)
     end 
 end   
 
+function addMoney(identifier, amount)
+    if Framework == 'esx' then
+        MySQL.Async.execute('UPDATE users SET bank = bank + @amount WHERE identifier = @identifier', { ['@amount'] = amount, ['@identifier'] = identifier })
+    elseif Framework == 'qbcore' then
+        MySQL.Async.execute('UPDATE players SET money = JSON_SET(money, "$.bank", JSON_EXTRACT(money, "$.bank") + @amount) WHERE citizenid = @identifier', { ['@amount'] = amount, ['@identifier'] = identifier })
+    end
+end
+
+
 -- = [ Other Bridges ] = -- 
 
 function getName(source)
     if Framework == 'esx' then 
-        local xPlayer = ESX.GetPlayerFromId(source)
-        return xPlayer.getName()
-
+        local Player = ESX.GetPlayerFromId(source)
+        return Player.getName()
     elseif Framework == 'qbcore' then 
-        local player = QBCore.Functions.GetPlayer(source)
-        if player then
-            return player.PlayerData.charinfo.firstname .. " " .. player.PlayerData.charinfo.lastname
+        local Player = QBCore.Functions.GetPlayer(source)
+        if Player then
+            return Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname
         end
     end 
 end

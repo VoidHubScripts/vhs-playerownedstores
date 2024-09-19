@@ -16,7 +16,7 @@ Stores = {
     lsc = { 
         blips = { useBlip = true, sprite = 24, scale = 0.8, color = 3, label = 'Mechanic Store' }, 
         peds = { location = vec4(-368.4481, -101.0956, 38.5430, 163.5545), model = 'a_m_m_prolhost_01', scenario = 'WORLD_HUMAN_CLIPBOARD_FACILITY' }, 
-        manageJob = { job = 'mechanic', grade = 2, usePlayer = true, identifer = 'HZT7I7DR'  --[[ citizen id or esx identifier ]] },
+        manageJob = { job = 'mechanic', grade = 2, usePlayer = false, identifier = 'HZT7I7DR'  --[[ citizen id or esx identifier ]] },
         menu = { title = '🧰 **LSC Store**' },
         allowedItems = {
             useAllowed = true, 
