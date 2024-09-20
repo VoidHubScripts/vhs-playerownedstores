@@ -49,7 +49,7 @@ function getInventory(source)
         local Player = ESX.GetPlayerFromId(source)
         if Player then
             local inventory = Player.getInventory()
-            for _, item in ipairs(inventory) do
+            for _, item in pairs(inventory) do
                 if item.name and item.label and item.count then
                     table.insert(inv, { name = item.name, label = item.label, count = item.count })
                 end

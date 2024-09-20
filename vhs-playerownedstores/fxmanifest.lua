@@ -3,7 +3,7 @@ game 'gta5'
 lua54 'yes'
 
 description 'vhs-playerownedstores'
-version 'v0.1'
+version 'v0.2'
 
 client_scripts {
     'configs/config_main.lua',
