@@ -1,4 +1,3 @@
-
 function getIdentifier()
     if Framework == 'esx' then
         local playerData = ESX.GetPlayerData()

@@ -21,19 +21,27 @@ Stores = {
         allowedItems = {
             useAllowed = true, 
             list = {
-                "repairkit", 
-                "nitrous", 
-                "harness", 
+                "trowel", 
+             
             } 
         }, 
     }, 
-    --[[ 
-    otherstore = { 
-        blips = { useBlip = true, sprite = 24, scale = 0.8, color = 3, label = 'Other Store' }, 
-        peds = { location = vec4(-372.2540, -117.0190, 38.6961, 345.1687), model = 'g_m_m_armlieut_01', scenario = 'WORLD_HUMAN_CLIPBOARD_FACILITY' }, 
-        manageJob = { job = 'police', grade = 2 },
-        menu = { title = '**Other Store**' },
+    weaponStore = { 
+        blips = { useBlip = true, sprite = 59, scale = 0.8, color = 69, label = 'Weapons Store' }, 
+        peds = { location = vec4(22.7322, -1105.5125, 28.7970, 158.4887), model = 'a_m_m_prolhost_01', scenario = 'WORLD_HUMAN_CLIPBOARD_FACILITY' }, 
+        manageJob = { job = 'mechanic', grade = 2, usePlayer = true, identifier = 'P4D531MU'  --[[ citizen id or esx identifier ]] },
+        menu = { title = '**Class A - Weapons Store**' },
+        allowedItems = {
+            useAllowed = true, 
+            list = {
+                'at_suppressor_light', 
+                'at_clip_extended_pistol', 
+                "weapon_pistol", 
+                "weapon_knife", 
+                "ammo-9", 
+            } 
+        }, 
     }, 
-    ]]
+    
 }
 

@@ -5,15 +5,27 @@ function addItem(source, item, amount)
         local Player = ESX.GetPlayerFromId(source)
         if Player.canCarryItem(item, amount) then 
             Player.addInventoryItem(item, amount)
-        end 
+            return true
+        else
+            return false
+        end
     elseif GetResourceState('ox_inventory') == 'started' then
-        local success, response = exports.ox_inventory:AddItem(source, item, amount)
-        if not success then
-            return print(response)
-        end   
+        if exports.ox_inventory:CanCarryItem(source, item, amount) then
+            local success, response = exports.ox_inventory:AddItem(source, item, amount)
+            if success then
+                return true
+            else
+                print(response) 
+                return false
+            end
+        else
+            return false
+        end
     elseif Framework == 'qbcore' then 
         local added = exports['qb-inventory']:AddItem(source, item, amount)
+        return added ~= nil 
     end 
+    return false
 end
 
 function removeItem(source, item, amount)
@@ -45,34 +57,53 @@ end
 
 function getInventory(source)
     local inv = {}
+    local aggregatedItems = {} 
+
     if Framework == 'esx' then
         local Player = ESX.GetPlayerFromId(source)
         if Player then
             local inventory = Player.getInventory()
             for _, item in pairs(inventory) do
                 if item.name and item.label and item.count then
-                    table.insert(inv, { name = item.name, label = item.label, count = item.count })
+                    if aggregatedItems[item.name] then
+                        aggregatedItems[item.name].count = aggregatedItems[item.name].count + item.count
+                    else
+                        aggregatedItems[item.name] = { name = item.name, label = item.label, count = item.count }
+                    end
                 end
             end
         end
     elseif GetResourceState('ox_inventory') == 'started' then
-        local inventory = exports.ox_inventory:GetInventoryItems(source)  
+        local inventory = exports.ox_inventory:GetInventoryItems(source)
         for _, item in pairs(inventory) do
             if item.name and item.label and item.count then
-                table.insert(inv, { name = item.name, label = item.label, count = item.count })
+                if aggregatedItems[item.name] then
+                    aggregatedItems[item.name].count = aggregatedItems[item.name].count + item.count
+                else
+                    aggregatedItems[item.name] = { name = item.name, label = item.label, count = item.count }
+                end
             end
-        end  
+        end
     elseif Framework == 'qbcore' then
         local Player = QBCore.Functions.GetPlayer(source)
         if Player then
             local inventory = exports['qb-inventory']:LoadInventory(source, Player.PlayerData.citizenid)
             for _, item in pairs(inventory) do
                 if item.name and item.label and item.amount then
-                    table.insert(inv, { name = item.name, label = item.label, count = item.amount })
+                    if aggregatedItems[item.name] then
+                        aggregatedItems[item.name].count = aggregatedItems[item.name].count + item.amount
+                    else
+                        aggregatedItems[item.name] = { name = item.name, label = item.label, count = item.amount }
+                    end
                 end
             end
         end
     end
+
+    for _, item in pairs(aggregatedItems) do
+        table.insert(inv, item)
+    end
+
     return inv
 end
 
@@ -162,14 +193,25 @@ function societyDeposit(society, amount)
     end 
 end   
 
-function addMoney(identifier, amount)
+function addMoney(identifier, amount, source, store)
     if Framework == 'esx' then
-        MySQL.Async.execute('UPDATE users SET bank = bank + @amount WHERE identifier = @identifier', { ['@amount'] = amount, ['@identifier'] = identifier })
+        local player = ESX.GetPlayerFromIdentifier(identifier)
+        if player then
+            player.addAccountMoney('bank', amount)
+            Notify('info', 'Payment Received ', store.. ' payment of $'.. amount, source) 
+        else
+            MySQL.Async.execute('UPDATE users SET bank = bank + @amount WHERE identifier = @identifier', {['@amount'] = amount,['@identifier'] = identifier})
+        end
     elseif Framework == 'qbcore' then
-        MySQL.Async.execute('UPDATE players SET money = JSON_SET(money, "$.bank", JSON_EXTRACT(money, "$.bank") + @amount) WHERE citizenid = @identifier', { ['@amount'] = amount, ['@identifier'] = identifier })
+        local player = QBCore.Functions.GetPlayerByCitizenId(identifier)
+        if player then
+            player.Functions.AddMoney('bank', amount)
+            Notify('info', 'Payment Received ', store.. ' payment of $'.. amount, source) 
+        else
+            MySQL.Async.execute('UPDATE players SET money = JSON_SET(money, "$.bank", JSON_EXTRACT(money, "$.bank") + @amount) WHERE citizenid = @identifier', { ['@amount'] = amount, ['@identifier'] = identifier })
+        end
     end
 end
-
 
 -- = [ Other Bridges ] = -- 
 

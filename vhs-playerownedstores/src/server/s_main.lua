@@ -3,7 +3,6 @@ if Framework == 'esx' then ESX = exports["es_extended"]:getSharedObject() else Q
 local versionCheck = function()
 	local currentVersion = GetResourceMetadata(GetCurrentResourceName(), 'version', 0)
 	local latestReleaseUrl = 'https://api.github.com/repos/VoidHubScripts/vhs-playerownedstores/releases/latest'
-
 	PerformHttpRequest(latestReleaseUrl, function(statusCode, resultData, headers)
 		if statusCode == 200 then
 			local releaseData   = json.decode(resultData)
@@ -58,11 +57,16 @@ lib.callback.register('vhs-store:editProduct', function(source, store, item, new
     if (newPrice ~= nil or (addStock and addStock > 0) or (removeStock and removeStock > 0)) then
         local amount = (addStock and addStock > 0) and addStock or removeStock
         local increase = (addStock and addStock > 0) 
-        editStock(store, item, newPrice, amount, increase)
         if addStock and addStock > 0 then
             removeItem(source, item, addStock)
+            editStock(store, item, newPrice, amount, increase)
         elseif removeStock and removeStock > 0 then
-            addItem(source, item, removeStock)
+            local add = addItem(source, item, removeStock)
+            if add then 
+                editStock(store, item, newPrice, amount, increase)
+            else 
+                Notify('info', 'No Space', 'You have no inventory space!', source)
+            end
         end
     end
     return true
@@ -79,16 +83,20 @@ end)
 
 lib.callback.register('vhs-store:buyItem', function(source, store, item, price, amount)
     local storeConfig = Stores[store]
-    local price = amount * price 
-    if getMoney(source) >= price then 
-        removeMoney(source, price)
-        if storeConfig.manageJob.usePlayer then 
-            addMoney(storeConfig.manageJob.identifier, price)
+    local totalPrice = amount * price 
+    if getMoney(source) >= totalPrice then 
+        local add = addItem(source, item, amount)
+        if add then 
+            removeMoney(source, totalPrice)
+            if storeConfig.manageJob.usePlayer then 
+                addMoney(storeConfig.manageJob.identifier, totalPrice, source, storeConfig.menu.title)
+            else 
+                societyDeposit(storeConfig.manageJob.job, totalPrice)
+            end
+            editStock(store, item, nil, amount, false)
         else 
-            societyDeposit(storeConfig.manageJob.job, price)
+            Notify('info', 'No Space', 'You have no inventory space!', source)
         end 
-        addItem(source, item, amount)
-        editStock(store, item, nil, amount, false)
     else
         Notify('info', 'Cannot Afford', 'You need more moneys', source) 
     end
@@ -111,7 +119,6 @@ lib.callback.register('vhs-store:setItem', function(source, price, amount, name,
     if storeData.allowedItems.useAllowed then
         local isAllowed = false
         for _, allowedItem in ipairs(storeData.allowedItems.list) do
-            
             if string.lower(name) == string.lower(allowedItem) then
                 isAllowed = true
                 break
